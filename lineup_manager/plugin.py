@@ -128,8 +128,9 @@ class Plugin:
                 r = local_channels.find(zip_code, spec.get("sources", []), context.get("data_dir"))
             except Exception as e:
                 return {"status": "error", "message": str(e)}
-            return {"status": "ok", "message": f"{len(r['stations'])} channels near {r['place']}: " +
-                    ", ".join(f"{x['name']} ({x['miles']} mi)" for x in r["stations"]), **r}
+            calls = r["include"].split("(")[-1].split(")")[0].replace("|", ", ")
+            return {"status": "ok", "message": f"Local stations for {r['place']}: {calls} "
+                    f"({len(r['stations'])} provider channels). Run Build to apply.", **r}
         try:
             cfg = self.lineup_cfg(settings, context.get("data_dir"), log)
         except (ValueError, OSError) as e:
