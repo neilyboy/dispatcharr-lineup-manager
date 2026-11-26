@@ -24,11 +24,13 @@ A [Dispatcharr](https://github.com/Dispatcharr/Dispatcharr) plugin that turns se
 
 ## Use
 
-1. **Preview lineup** shows what each guide group would get. It changes nothing.
-2. **Build lineup** builds it. **Turn on schedule** keeps it fresh.
-3. **What's left out** lists everything else. Copy group names into **Add back**, save, and build again.
-4. Add rows to **Members**, save settings, then **Save members**. **Setup cards** gives you what to send each person.
-5. To renew, type `alice, bob` (or `all`) into **Renew** and press **Renew**.
+1. Type your **ZIP code** and press **Find local channels** to see which ABC, CBS, NBC, FOX, PBS and CW
+   stations it picks for the Locals group. It reads your providers' own channel names, so no call signs needed.
+2. **Preview lineup** shows what each guide group would get. It changes nothing.
+3. **Build lineup** builds it. **Turn on schedule** keeps it fresh.
+4. **What's left out** lists everything else. Copy group names into **Add back**, save, and build again.
+5. Add rows to **Members**, save settings, then **Save members**. **Setup cards** gives you what to send each person.
+6. To renew, type `alice, bob` (or `all`) into **Renew** and press **Renew**.
 
 ### Members outside your home
 
