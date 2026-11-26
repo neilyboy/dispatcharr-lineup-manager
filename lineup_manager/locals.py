@@ -3,7 +3,8 @@
 "US ABC 25 (WEEK-DT2) Peoria" or "IL | Peoria | CBS WMBD" give a call sign and its city; cities are geocoded
 (Open-Meteo, no key) and the nearest market's stations are kept by call sign.
 """
-import json, math, os, re, statistics
+import json
+import os, math, os, re, statistics
 from concurrent.futures import ThreadPoolExecutor
 
 PAREN = re.compile(r"\(([KW][A-Z]{2,3})(?:-[A-Z0-9]+)?\)\s*(.+)$")
@@ -110,6 +111,10 @@ def find(zip_code, sources, data_dir=None):
     place, home = zip_place(zip_code.strip())
     res = pick(list(names), place, home)
     if path:
-        with open(path, "w") as f:
-            json.dump(_cache, f)
+        try:
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, "w") as f:
+                json.dump(_cache, f)
+        except OSError:
+            pass
     return res
