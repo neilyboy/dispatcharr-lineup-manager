@@ -1,12 +1,12 @@
 import datetime, json, os
-from . import lineup, members, tasks
+from . import lineup, locals as local_channels, members, tasks
 
 S_LINEUP, S_HIDDEN, S_MEMBERS, S_SCHEDULE = "sec_lineup", "sec_hidden", "sec_members", "sec_schedule"
 
 
 class Plugin:
     name = "Lineup Manager"
-    version = "0.1.1"
+    version = "0.2.0"
     description = ("One clean guide from all your providers (same channels merged with failover), a report of "
                    "everything left out with one-line add-back, and friends & family logins with expiry dates.")
     author = "dispatcharr-lineup-manager contributors"
@@ -21,6 +21,10 @@ class Plugin:
          "section": S_LINEUP,
          "help_text": "Blank uses the bundled US + UK + sports lineup. Paste your own {\"groups\": [...]} to change it; "
                       "see the README for the format."},
+        {"id": "zip", "label": "ZIP code for local channels", "type": "string", "default": "", "section": S_LINEUP,
+         "placeholder": "e.g. 90210",
+         "help_text": "Fills the Locals group with the ABC, CBS, NBC, FOX, PBS and CW stations nearest you, found from your "
+                      "providers' own channel names. Blank keeps the Locals group as configured."},
         {"id": "sync_limits", "label": "Read stream limits from Xtream providers", "type": "boolean", "default": False,
          "section": S_LINEUP, "help_text": "Asks each Xtream provider for its connection limit and updates the account."},
 
@@ -61,6 +65,8 @@ class Plugin:
          "description": "Builds the guide groups from every active provider.",
          "confirm": {"required": True, "title": "Build the lineup?",
                      "message": "Channels in the lineup's own groups are replaced. Other groups are not touched."}},
+        {"id": "locals", "label": "Find local channels", "async": True,
+         "description": "Shows which local stations the ZIP code picks. Changes nothing."},
         {"id": "hidden", "label": "What's left out", "async": True,
          "description": "Lists provider groups not in the guide. Copy names into 'Add back'."},
         {"id": "sync_members", "label": "Save members", "button_color": "green",
@@ -77,7 +83,7 @@ class Plugin:
 
     # ---- helpers -------------------------------------------------------------------------------
     @staticmethod
-    def lineup_cfg(settings):
+    def lineup_cfg(settings, data_dir=None, log=None):
         raw = (settings.get("lineup_config") or "").strip()
         if raw:
             cfg = json.loads(raw)
@@ -86,12 +92,20 @@ class Plugin:
                 cfg = json.load(f)
         if "countries" in settings:
             cfg["countries"] = settings.get("countries") or ""
+        if (settings.get("zip") or "").strip():
+            for g in cfg.get("groups", []):
+                if g.get("name") == "Locals":
+                    try:
+                        g["include"] = local_channels.find(settings["zip"], g.get("sources", []), data_dir)["include"]
+                    except Exception as e:  # keep the configured Locals group rather than fail the whole build
+                        if log:
+                            log.warning("Local channels by ZIP: %s", e)
         return lineup.with_add_backs(cfg, (settings.get("add_back") or "").splitlines())
 
-    def refresh(self, settings, log, progress=lambda p, m: None):
+    def refresh(self, settings, log, progress=lambda p, m: None, data_dir=None):
         if settings.get("sync_limits"):
             sync_limits(log)
-        summary = lineup.Curator(self.lineup_cfg(settings), log).run(apply=True, progress=progress)
+        summary = lineup.Curator(self.lineup_cfg(settings, data_dir, log), log).run(apply=True, progress=progress)
         result = members.sync(settings.get("members") or [], settings.get("member_profile") or "")
         total = sum(r["channels"] for r in summary)
         return {"status": "ok", "message": f"Lineup rebuilt: {total} channels in {len(summary)} groups. "
@@ -101,8 +115,23 @@ class Plugin:
     def run(self, action, params, context):
         settings, log = context.get("settings", {}), context["logger"]
         progress = context.get("report_progress") or (lambda p, m: None)
+        if action == "locals":
+            zip_code = (settings.get("zip") or "").strip()
+            if not zip_code:
+                return {"status": "error", "message": "Type your ZIP code under Lineup and save first."}
+            base = lineup.with_add_backs(json.loads(settings["lineup_config"]) if (settings.get("lineup_config") or "").strip()
+                                         else json.load(open(os.path.join(os.path.dirname(__file__), "lineup.example.json"))), [])
+            spec = next((g for g in base.get("groups", []) if g.get("name") == "Locals"), None)
+            if not spec:
+                return {"status": "error", "message": "The lineup has no group named Locals."}
+            try:
+                r = local_channels.find(zip_code, spec.get("sources", []), context.get("data_dir"))
+            except Exception as e:
+                return {"status": "error", "message": str(e)}
+            return {"status": "ok", "message": f"{len(r['stations'])} channels near {r['place']}: " +
+                    ", ".join(f"{x['name']} ({x['miles']} mi)" for x in r["stations"]), **r}
         try:
-            cfg = self.lineup_cfg(settings)
+            cfg = self.lineup_cfg(settings, context.get("data_dir"), log)
         except (ValueError, OSError) as e:
             return {"status": "error", "message": f"Lineup groups JSON is invalid: {e}"}
 
@@ -116,7 +145,7 @@ class Plugin:
                     "_dispatcharr": {"refresh": "ui"}}
 
         if action == "refresh":
-            return {**self.refresh(settings, log, progress), "_dispatcharr": {"refresh": "ui"}}
+            return {**self.refresh(settings, log, progress, context.get("data_dir")), "_dispatcharr": {"refresh": "ui"}}
 
         if action == "hidden":
             rows = lineup.Curator(cfg, log).hidden()

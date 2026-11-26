@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Lineup Manager",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "One clean guide from all your providers (same channels merged with failover), a report of everything left out with one-line add-back, and friends & family logins with expiry dates.",
   "author": "dispatcharr-lineup-manager contributors",
   "help_url": "https://github.com/neilyboy/dispatcharr-lineup-manager",
@@ -32,6 +32,15 @@
       "default": "",
       "section": "sec_lineup",
       "help_text": "Blank uses the bundled US + UK + sports lineup. Paste your own {\"groups\": [...]} to change it; see the README for the format."
+    },
+    {
+      "id": "zip",
+      "label": "ZIP code for local channels",
+      "type": "string",
+      "default": "",
+      "section": "sec_lineup",
+      "placeholder": "e.g. 90210",
+      "help_text": "Fills the Locals group with the ABC, CBS, NBC, FOX, PBS and CW stations nearest you, found from your providers' own channel names. Blank keeps the Locals group as configured."
     },
     {
       "id": "sync_limits",
@@ -164,6 +173,12 @@
         "title": "Build the lineup?",
         "message": "Channels in the lineup's own groups are replaced. Other groups are not touched."
       }
+    },
+    {
+      "id": "locals",
+      "label": "Find local channels",
+      "async": true,
+      "description": "Shows which local stations the ZIP code picks. Changes nothing."
     },
     {
       "id": "hidden",
