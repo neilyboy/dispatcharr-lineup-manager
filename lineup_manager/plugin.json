@@ -1,0 +1,201 @@
+{
+  "manifest_version": 2,
+  "name": "Lineup Manager",
+  "version": "0.1.0",
+  "description": "One clean guide from all your providers (same channels merged with failover), a report of everything left out with one-line add-back, and friends & family logins with expiry dates.",
+  "author": "dispatcharr-lineup-manager contributors",
+  "help_url": "https://github.com/neilyboy/dispatcharr-lineup-manager",
+  "capabilities": [
+    "background_tasks",
+    "outbound_network",
+    "user_data"
+  ],
+  "fields": [
+    {
+      "id": "sec_lineup",
+      "label": "Lineup",
+      "type": "section"
+    },
+    {
+      "id": "countries",
+      "label": "Countries to keep",
+      "type": "string",
+      "default": "US|USA|UK|GB",
+      "section": "sec_lineup",
+      "help_text": "Provider groups and channels prefixed with any other country code (DE:, AR |, ...) are left out. Blank keeps every country."
+    },
+    {
+      "id": "lineup_config",
+      "label": "Lineup groups (JSON, optional)",
+      "type": "text",
+      "rows": 8,
+      "default": "",
+      "section": "sec_lineup",
+      "help_text": "Blank uses the bundled US + UK + sports lineup. Paste your own {\"groups\": [...]} to change it; see the README for the format."
+    },
+    {
+      "id": "sync_limits",
+      "label": "Read stream limits from Xtream providers",
+      "type": "boolean",
+      "default": false,
+      "section": "sec_lineup",
+      "help_text": "Asks each Xtream provider for its connection limit and updates the account."
+    },
+    {
+      "id": "sec_hidden",
+      "label": "Left out / add back",
+      "type": "section",
+      "collapsed": true
+    },
+    {
+      "id": "add_back",
+      "label": "Add these provider groups back",
+      "type": "text",
+      "rows": 4,
+      "default": "",
+      "section": "sec_hidden",
+      "help_text": "One provider group name per line, copied from the 'What's left out' report. Each becomes its own guide group, numbered from 80000."
+    },
+    {
+      "id": "sec_members",
+      "label": "Members",
+      "type": "section"
+    },
+    {
+      "id": "members",
+      "label": "Members",
+      "type": "table",
+      "default": [],
+      "section": "sec_members",
+      "columns": [
+        {
+          "id": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "id": "username",
+          "label": "Username",
+          "type": "string"
+        },
+        {
+          "id": "stream_limit",
+          "label": "Streams",
+          "type": "number"
+        },
+        {
+          "id": "expires",
+          "label": "Expires (YYYY-MM-DD)",
+          "type": "string"
+        },
+        {
+          "id": "enabled",
+          "label": "On",
+          "type": "boolean"
+        },
+        {
+          "id": "notes",
+          "label": "Notes",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "member_profile",
+      "label": "Channel profile for members",
+      "type": "string",
+      "default": "",
+      "section": "sec_members",
+      "help_text": "Optional. Blank gives members every channel."
+    },
+    {
+      "id": "public_url",
+      "label": "Server address members use",
+      "type": "string",
+      "default": "",
+      "placeholder": "https://tv.example.com",
+      "section": "sec_members",
+      "help_text": "Shown on setup cards. Use your HTTPS domain for members outside your home."
+    },
+    {
+      "id": "renew_who",
+      "label": "Renew",
+      "type": "string",
+      "default": "",
+      "section": "sec_members",
+      "placeholder": "alice, bob   (or: all)"
+    },
+    {
+      "id": "renew_months",
+      "label": "Renew by (months)",
+      "type": "number",
+      "default": 3,
+      "section": "sec_members"
+    },
+    {
+      "id": "sec_schedule",
+      "label": "Schedule",
+      "type": "section",
+      "collapsed": true
+    },
+    {
+      "id": "every_hours",
+      "label": "Rebuild the lineup and check members every (hours)",
+      "type": "number",
+      "default": 2,
+      "section": "sec_schedule"
+    }
+  ],
+  "actions": [
+    {
+      "id": "preview",
+      "label": "Preview lineup",
+      "async": true,
+      "description": "Shows what each guide group would get. Changes nothing."
+    },
+    {
+      "id": "apply",
+      "label": "Build lineup",
+      "async": true,
+      "button_color": "blue",
+      "description": "Builds the guide groups from every active provider.",
+      "confirm": {
+        "required": true,
+        "title": "Build the lineup?",
+        "message": "Channels in the lineup's own groups are replaced. Other groups are not touched."
+      }
+    },
+    {
+      "id": "hidden",
+      "label": "What's left out",
+      "async": true,
+      "description": "Lists provider groups not in the guide. Copy names into 'Add back'."
+    },
+    {
+      "id": "sync_members",
+      "label": "Save members",
+      "button_color": "green",
+      "description": "Creates new members' logins and turns off expired or removed members."
+    },
+    {
+      "id": "renew",
+      "label": "Renew",
+      "description": "Extends the members named in 'Renew'."
+    },
+    {
+      "id": "cards",
+      "label": "Setup cards",
+      "description": "Login details to send each member."
+    },
+    {
+      "id": "backup",
+      "label": "Export settings",
+      "description": "Saves lineup + members (no passwords) to the plugin's data folder."
+    },
+    {
+      "id": "schedule",
+      "label": "Turn on schedule",
+      "description": "Rebuilds the lineup and checks expiries on the interval set under Schedule."
+    }
+  ]
+}
