@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Lineup Manager",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "One clean guide from all your providers (same channels merged with failover), a report of everything left out with one-line add-back, and friends & family logins with expiry dates.",
   "author": "dispatcharr-lineup-manager contributors",
   "help_url": "https://github.com/neilyboy/dispatcharr-lineup-manager",
@@ -191,6 +191,12 @@
       "id": "backup",
       "label": "Export settings",
       "description": "Saves lineup + members (no passwords) to the plugin's data folder."
+    },
+    {
+      "id": "refresh",
+      "label": "Run scheduled job now",
+      "async": true,
+      "description": "What the schedule runs: provider limits, lineup build, member check."
     },
     {
       "id": "schedule",

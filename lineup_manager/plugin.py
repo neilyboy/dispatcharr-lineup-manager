@@ -6,7 +6,7 @@ S_LINEUP, S_HIDDEN, S_MEMBERS, S_SCHEDULE = "sec_lineup", "sec_hidden", "sec_mem
 
 class Plugin:
     name = "Lineup Manager"
-    version = "0.1.0"
+    version = "0.1.1"
     description = ("One clean guide from all your providers (same channels merged with failover), a report of "
                    "everything left out with one-line add-back, and friends & family logins with expiry dates.")
     author = "dispatcharr-lineup-manager contributors"
@@ -69,6 +69,8 @@ class Plugin:
         {"id": "cards", "label": "Setup cards", "description": "Login details to send each member."},
         {"id": "backup", "label": "Export settings",
          "description": "Saves lineup + members (no passwords) to the plugin's data folder."},
+        {"id": "refresh", "label": "Run scheduled job now", "async": True,
+         "description": "What the schedule runs: provider limits, lineup build, member check."},
         {"id": "schedule", "label": "Turn on schedule",
          "description": "Rebuilds the lineup and checks expiries on the interval set under Schedule."},
     ]
@@ -112,6 +114,9 @@ class Plugin:
             verb = "Built" if action == "apply" else "Would build"
             return {"status": "ok", "message": f"{verb} {total} channels in {len(summary)} groups.", "groups": summary,
                     "_dispatcharr": {"refresh": "ui"}}
+
+        if action == "refresh":
+            return {**self.refresh(settings, log, progress), "_dispatcharr": {"refresh": "ui"}}
 
         if action == "hidden":
             rows = lineup.Curator(cfg, log).hidden()
