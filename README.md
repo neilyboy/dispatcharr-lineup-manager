@@ -32,6 +32,15 @@ A [Dispatcharr](https://github.com/Dispatcharr/Dispatcharr) plugin that turns se
 5. Add rows to **Members**, save settings, then **Save members**. **Setup cards** gives you what to send each person.
 6. To renew, type `alice, bob` (or `all`) into **Renew** and press **Renew**.
 
+### National locals
+
+**National locals** (on by default) adds every English-language ABC, CBS, NBC, FOX, PBS, CW, MyNetwork and independent
+station your providers carry: one `Locals — <state>` group per state, numbered from 100000, each station merged across
+providers with failover. Vanilla Live TV shows them all under one **Locals National** chip, filterable by network and state,
+so you can find every CBS affiliate when a game is regional. Station names are parsed from the providers' own channel
+names (`IL | Peoria | CBS WMBD`, `US CBS 31 (WMBD) Peoria`, `[Peoria_IL] CBS-WMBD`), and Spanish-language networks are
+left out. New channels get guide data at Dispatcharr's next EPG refresh.
+
 ### Members outside your home
 
 Members connect to your Dispatcharr directly, so they need a way in. A reverse proxy with HTTPS on your own

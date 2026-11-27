@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Lineup Manager",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "One clean guide from all your providers (same channels merged with failover), a report of everything left out with one-line add-back, and friends & family logins with expiry dates.",
   "author": "dispatcharr-lineup-manager contributors",
   "help_url": "https://github.com/neilyboy/dispatcharr-lineup-manager",
@@ -41,6 +41,14 @@
       "section": "sec_lineup",
       "placeholder": "e.g. 90210",
       "help_text": "Fills the Locals group with the ABC, CBS, NBC, FOX, PBS and CW stations nearest you, found from your providers' own channel names. Blank keeps the Locals group as configured."
+    },
+    {
+      "id": "national_locals",
+      "label": "National locals",
+      "type": "boolean",
+      "default": true,
+      "section": "sec_lineup",
+      "help_text": "Adds every English-language ABC, CBS, NBC, FOX, PBS, CW, MyNetwork and independent station your providers carry, one 'Locals — <state>' group per state (channels from 100000). Handy when a game is on a network your own locals don't show."
     },
     {
       "id": "sync_limits",

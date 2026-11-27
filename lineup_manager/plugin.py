@@ -1,12 +1,12 @@
 import datetime, json, os
-from . import lineup, locals as local_channels, members, tasks
+from . import lineup, locals as local_channels, members, stations, tasks
 
 S_LINEUP, S_HIDDEN, S_MEMBERS, S_SCHEDULE = "sec_lineup", "sec_hidden", "sec_members", "sec_schedule"
 
 
 class Plugin:
     name = "Lineup Manager"
-    version = "0.2.0"
+    version = "0.3.0"
     description = ("One clean guide from all your providers (same channels merged with failover), a report of "
                    "everything left out with one-line add-back, and friends & family logins with expiry dates.")
     author = "dispatcharr-lineup-manager contributors"
@@ -25,6 +25,10 @@ class Plugin:
          "placeholder": "e.g. 90210",
          "help_text": "Fills the Locals group with the ABC, CBS, NBC, FOX, PBS and CW stations nearest you, found from your "
                       "providers' own channel names. Blank keeps the Locals group as configured."},
+        {"id": "national_locals", "label": "National locals", "type": "boolean", "default": True, "section": S_LINEUP,
+         "help_text": "Adds every English-language ABC, CBS, NBC, FOX, PBS, CW, MyNetwork and independent station your "
+                      "providers carry, one 'Locals — <state>' group per state (channels from 100000). Handy when a game "
+                      "is on a network your own locals don't show."},
         {"id": "sync_limits", "label": "Read stream limits from Xtream providers", "type": "boolean", "default": False,
          "section": S_LINEUP, "help_text": "Asks each Xtream provider for its connection limit and updates the account."},
 
@@ -106,10 +110,23 @@ class Plugin:
         if settings.get("sync_limits"):
             sync_limits(log)
         summary = lineup.Curator(self.lineup_cfg(settings, data_dir, log), log).run(apply=True, progress=progress)
+        nat = self.national(settings, True, log)
         result = members.sync(settings.get("members") or [], settings.get("member_profile") or "")
         total = sum(r["channels"] for r in summary)
-        return {"status": "ok", "message": f"Lineup rebuilt: {total} channels in {len(summary)} groups. "
-                                           f"{len(result)} members checked.", "groups": summary, "members": result}
+        return {"status": "ok", "message": f"Lineup rebuilt: {total} channels in {len(summary)} groups{nat['text']}. "
+                                           f"{len(result)} members checked.", "groups": summary, "members": result,
+                "national_locals": nat.get("groups", [])}
+
+    @staticmethod
+    def national(settings, apply, log):
+        if not settings.get("national_locals", True):
+            return {"text": ""}
+        try:
+            r = stations.national(apply=apply, log=log)
+        except Exception as e:  # the main lineup is already built; report and carry on
+            log.warning("National locals: %s", e)
+            return {"text": f", national locals failed ({e})"}
+        return {"text": f", plus {r['channels']} national local stations in {len(r['groups'])} state groups", **r}
 
     # ---- actions -------------------------------------------------------------------------------
     def run(self, action, params, context):
@@ -140,10 +157,11 @@ class Plugin:
             if action == "apply" and settings.get("sync_limits"):
                 sync_limits(log)
             summary = lineup.Curator(cfg, log).run(apply=action == "apply", progress=progress)
+            nat = self.national(settings, action == "apply", log)
             total = sum(r["channels"] for r in summary)
             verb = "Built" if action == "apply" else "Would build"
-            return {"status": "ok", "message": f"{verb} {total} channels in {len(summary)} groups.", "groups": summary,
-                    "_dispatcharr": {"refresh": "ui"}}
+            return {"status": "ok", "message": f"{verb} {total} channels in {len(summary)} groups{nat['text']}.", "groups": summary,
+                    "national_locals": nat.get("groups", []), "_dispatcharr": {"refresh": "ui"}}
 
         if action == "refresh":
             return {**self.refresh(settings, log, progress, context.get("data_dir")), "_dispatcharr": {"refresh": "ui"}}
